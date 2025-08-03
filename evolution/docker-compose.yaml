@@ -6,8 +6,6 @@ services:
     image: atendai/evolution-api:v2.1.1
     container_name: evolution-api
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     environment:
       # Server Config
       - NODE_ENV=production
