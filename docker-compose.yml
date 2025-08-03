@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Evolution API - WhatsApp
+  evolution-api:
+    image: atendai/evolution-api:latest
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - LOG_LEVEL=info
+      # Conectar direto no Supabase
+      - DATABASE_ENABLED=true
+      - DATABASE_CONNECTION_URI=${SUPABASE_DB_URL}
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_WEBHOOK=true
+      - DATABASE_SAVE_DATA_CHAT=true
+      # Redis local para performance
+      - REDIS_ENABLED=true
+      - REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379
+      # Auth
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY}
+      # Webhook para seu app Vercel
+      - WEBHOOK_GLOBAL_URL=${WEBHOOK_GLOBAL_URL}
+      - WEBHOOK_GLOBAL_ENABLED=true
+      - QRCODE_LIMIT=30
+    volumes:
+      - evolution-data:/app/data
+    restart: unless-stopped
+    depends_on:
+      - redis
+    labels:
+      - coolify.managed=true
+      - coolify.type=application
+      - coolify.name=Evolution API
+      - coolify.subdomain=evolution-api
+      - coolify.port=8080
+
+  # Redis para Cache e Filas
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    labels:
+      - coolify.managed=true
+      - coolify.type=database
+      - coolify.name=Redis Cache
+
+volumes:
+  evolution-data:
+  redis-data:
